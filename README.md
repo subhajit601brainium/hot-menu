@@ -1,2 +1,2 @@
 # hot-menu
-Foot Delivery Solution
+Food Delivery Solution
