@@ -2,12 +2,11 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 
 var vendorOwnerSchema = new mongoose.Schema({
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: Number, required: true },
+    fullName: { type: String, required: true },
+    email: { type: String},
+    phone: { type: Number},
     countryCode: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String },
     profileImage: { type: String, default: '' },
     allowMail: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

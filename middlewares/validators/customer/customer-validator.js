@@ -3,33 +3,14 @@ var joi = require('@hapi/joi');
 module.exports = {
     customerRegister: async (req, res, next) => {
         const rules = joi.object({
-            firstName: joi.string().required().error(new Error('First name is required')),
-            lastName: joi.string().required().error(new Error('Last name is required')),
-            email: joi.string().required().email().error((err) => {
-                if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
-                    return new Error('Email is required');
-                } else {
-                    return new Error('Please enter valid email');
-                }
-            }),
-            phone: joi.number().required().error((err) => {
-                if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
-                    return new Error('Phone is required');
-                } else if (typeof err[0].value === 'string') {
-                    return new Error('Please enter valid phone');
-                }
-            }),
+            fullName: joi.string().required().error(new Error('full name is required')),
+            email: joi.string().email().error(new Error('Valid email is required')),
+            phone: joi.number().integer().error(new Error('Valid phone no is required')),
+            socialId: joi.string().allow('').optional(),
             countryCode: joi.string().required().error(new Error('Country code is required')),
             latitude: joi.string().required().error(new Error('User latitude required')),
             longitude: joi.string().required().error(new Error('User longitude required')),
-            password: joi.string().required().error(new Error('Password is required')),
-            confirmPassword: joi.string().valid(joi.ref('password')).required().error(err => {
-                if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
-                    return new Error('Confirm password is required');
-                } else if (err[0].value !== req.body.password) {
-                    return new Error('Password and confirm password must match');
-                }
-            }),
+            password: joi.string().allow('').optional(),
             allowMail: joi.boolean(),
             promoCode: joi.string().allow('').optional(),
             loginType: joi.string().allow('').optional(),
@@ -44,16 +25,27 @@ module.exports = {
                 message: value.error.message
             })
         } else {
-            next();
+            if((req.body.socialId == '') && (req.body.password == '')) {
+                res.status(422).json({
+                    success: false,
+                    STATUSCODE: 422,
+                    message: 'Password is required'
+                });
+            } else {
+                next();
+            }
+            
         }
     },
 
     customerLogin: async (req, res, next) => {
         const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
+        const loginTypeVal = ["FACEBOOK", "GOOGLE", "EMAIL"];
         const rules = joi.object({
             user: joi.string().required().error(new Error('Email/phone is required')),
-            password: joi.string().required().error(new Error('Password is required')),
-            userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send valid userType'))
+            password: joi.string().allow('').optional(),
+            userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send valid userType')),
+            loginType: joi.string().required().valid(...loginTypeVal).error(new Error('Please send valid loginType'))
         });
 
         const value = await rules.validate(req.body);

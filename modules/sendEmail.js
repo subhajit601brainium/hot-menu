@@ -54,13 +54,13 @@ module.exports = function(emailType) {
                 /** Temporary Email text */
                 switch(emailType) {
                     case 'userRegistrationMail': 
-                        mailOption.text = `Hello ${data.firstName}, welcome to Hot menu. Enjoy delicious food hassle free .`
+                        mailOption.text = `Hello ${data.fullName}, welcome to Hot menu. Enjoy delicious food hassle free .`
                         break;
                     case 'forgotPasswordMail': 
-                        mailOption.text = `Hello ${data.firstName}, use ${data.forgotPasswordOtp} code to reset your password.`
+                        mailOption.text = `Hello ${data.fullName}, use ${data.forgotPasswordOtp} code to reset your password.`
                         break;
                     case 'resendOtpMail':
-                        mailOption.text = `Hello ${data.firstName}, use ${data.otp} code to verify your account.`
+                        mailOption.text = `Hello ${data.fullName}, use ${data.otp} code to verify your account.`
                         break;
                 }
  
