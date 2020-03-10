@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const corsMiddleWare = require('./middlewares/cors-middleware');
 
 var app = express();
+var engine = require('ejs-mate');
 
 //======== Create Server Starts =======//
 
@@ -34,6 +35,13 @@ if (config.environment == 'staging') {
 app.use(logger('dev'));
 
 
+// use ejs-locals for all ejs templates:
+app.engine('ejs', engine);
+
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs'); // so you can render('index')
+
+
 //====== Add Middleware for Rest Starts ======//
 // app.use(express.json({ extended: true, limit: '200000kb', parameterLimit: 200000 * 100 }));
 // app.use(express.urlencoded({ extended: true, limit: '200000kb', parameterLimit: 200000 * 100 }));
@@ -54,6 +62,9 @@ app.use(corsMiddleWare);
 
 const customerRoutes = require('./routes/customers');
 app.use('/api/customer', customerRoutes);
+
+const adminRoutes = require('./routes/admin/customers');
+app.use('/admin/customer', adminRoutes);
 
 //===== MongoDB Connection starts =====//
 const productionDBString = `mongodb://${config.production.username}:${config.production.password}@${config.production.host}:${config.production.port}/${config.production.dbName}?authSource=${config.production.authDb}`;
