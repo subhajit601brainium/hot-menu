@@ -165,8 +165,7 @@ module.exports = {
         const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
         const rules = joi.object({
             customerId: joi.string().required().error(new Error('Customer id is required')),
-            firstName: joi.string().required().error(new Error('First name is required')),
-            lastName: joi.string().required().error(new Error('Last name is required')),
+            fullName: joi.string().required().error(new Error('Full name is required')),
             countryCode: joi.string().required().error(new Error('Country code is required')),
             email: joi.string().required().email().error((err) => {
                 if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
@@ -182,7 +181,8 @@ module.exports = {
                     return new Error('Please enter valid phone');
                 }
             }),
-            userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send valid userType'))
+            userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send valid userType')),
+            loginType: joi.string().required().error(new Error('Please send valid loginType'))
         });
 
         const value = await rules.validate(req.body);

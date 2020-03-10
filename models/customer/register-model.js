@@ -13,89 +13,86 @@ module.exports = {
         if (data) {
             async.waterfall([
                 function (nextCb) {
-                    /** Check for customer existence */
-                    customerSchema.countDocuments({ email: data.email }).exec(function (err, count) {
-                        if (err) {
-                            nextCb(null, {
-                                success: false,
-                                STATUSCODE: 500,
-                                message: 'Internal DB error',
-                                response_data: {}
-                            });
-                        } else {
-                            if (count) {
+                    if (data.socialId != '') {
+
+                        /** Check for customer existence */
+                        customerSchema.countDocuments({ socialId: data.socialId }).exec(function (err, count) {
+                            if (err) {
+                                nextCb(null, {
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Internal DB error',
+                                    response_data: {}
+                                });
+                            } if (count) {
+                                console.log(count);
                                 nextCb(null, {
                                     success: false,
                                     STATUSCODE: 422,
-                                    message: 'User already exists for this email',
+                                    message: 'User already exists for this information.',
                                     response_data: {}
                                 });
                             } else {
-                                customerSchema.countDocuments({ phone: data.phone }).exec(function (err, count) {
-                                    if (err) {
-                                        nextCb(null, {
-                                            success: false,
-                                            STATUSCODE: 500,
-                                            message: 'Internal DB error',
-                                            response_data: {}
-                                        });
+                                nextCb(null, {
+                                    success: true,
+                                    STATUSCODE: 200,
+                                    message: 'success',
+                                    response_data: {}
+                                })
+                            }
+                        });
 
-                                    } if (count) {
-                                        nextCb(null, {
-                                            success: false,
-                                            STATUSCODE: 422,
-                                            message: 'User already exists for this phone no.',
-                                            response_data: {}
-                                        });
-                                    } else {
-                                        if (data.socialId == undefined) {
-                                            data.socialId = '';
-                                        }
+                    } else {
 
-                                        if (data.socialId == '') {
+                        /** Check for customer existence */
+                        customerSchema.countDocuments({ email: data.email }).exec(function (err, count) {
+                            if (err) {
+                                nextCb(null, {
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Internal DB error',
+                                    response_data: {}
+                                });
+                            } else {
+                                if (count) {
+                                    nextCb(null, {
+                                        success: false,
+                                        STATUSCODE: 422,
+                                        message: 'User already exists for this email',
+                                        response_data: {}
+                                    });
+                                } else {
+                                    customerSchema.countDocuments({ phone: data.phone }).exec(function (err, count) {
+                                        if (err) {
+                                            nextCb(null, {
+                                                success: false,
+                                                STATUSCODE: 500,
+                                                message: 'Internal DB error',
+                                                response_data: {}
+                                            });
+
+                                        } if (count) {
+                                            nextCb(null, {
+                                                success: false,
+                                                STATUSCODE: 422,
+                                                message: 'User already exists for this phone no.',
+                                                response_data: {}
+                                            });
+                                        } else {
                                             nextCb(null, {
                                                 success: true,
                                                 STATUSCODE: 200,
                                                 message: 'success',
                                                 response_data: {}
                                             })
-                                        } else {
-                                            /** Check for customer existence */
-                                            customerSchema.countDocuments({ socialId: data.socialId }).exec(function (err, count) {
-                                                if (err) {
-                                                    nextCb(null, {
-                                                        success: false,
-                                                        STATUSCODE: 500,
-                                                        message: 'Internal DB error',
-                                                        response_data: {}
-                                                    });
-                                                } if (count) {
-                                                    console.log(count);
-                                                    nextCb(null, {
-                                                        success: false,
-                                                        STATUSCODE: 422,
-                                                        message: 'User already exists for this information.',
-                                                        response_data: {}
-                                                    });
-                                                } else {
-                                                    nextCb(null, {
-                                                        success: true,
-                                                        STATUSCODE: 200,
-                                                        message: 'success',
-                                                        response_data: {}
-                                                    })
-                                                }
-                                            });
-
                                         }
-
-
-                                    }
-                                });
-
+                                    });
+                                }
                             }
-                        }
-                    })
+                        })
+
+                    }
+
                 },
                 function (arg1, nextCb) {
                     if (arg1.STATUSCODE === 200) {
@@ -165,7 +162,8 @@ module.exports = {
                                                         socialId: result.socialId,
                                                         id: result._id,
                                                         profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + file_name,
-                                                        userType: 'customer'
+                                                        userType: 'customer',
+                                                        loginType: loginType
                                                     },
                                                     authToken: authToken
                                                 }
@@ -192,7 +190,8 @@ module.exports = {
                                             socialId: result.socialId,
                                             id: result._id,
                                             profileImage: '',
-                                            userType: 'customer'
+                                            userType: 'customer',
+                                            loginType: loginType
                                         },
                                         authToken: authToken
                                     }
@@ -279,7 +278,8 @@ module.exports = {
                                     socialId: result.socialId,
                                     id: result._id,
                                     profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
-                                    userType: data.userType
+                                    userType: data.userType,
+                                    loginType: data.loginType
                                 },
                                 authToken: authToken
                             }
@@ -312,7 +312,8 @@ module.exports = {
                                             socialId: result.socialId,
                                             id: result._id,
                                             profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
-                                            userType: data.userType
+                                            userType: data.userType,
+                                            loginType: data.loginType
                                         },
                                         authToken: authToken
                                     }
@@ -358,7 +359,7 @@ module.exports = {
     },
     customerForgotPassword: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email }, function (err, customer) {
+            customerSchema.findOne({ email: data.email,loginType:'GENERAL'}, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -399,7 +400,7 @@ module.exports = {
     },
     customerResetPassword: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email }, { _id: 1 }, function (err, customer) {
+            customerSchema.findOne({ email: data.email,loginType: 'GENERAL' }, { _id: 1 }, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -455,7 +456,7 @@ module.exports = {
     },
     customerResendForgotPasswordOtp: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email }, function (err, customer) {
+            customerSchema.findOne({ email: data.email,loginType: 'GENERAL' }, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -544,7 +545,7 @@ module.exports = {
             /** Check for customer existence */
             console.log(data.customerId);
             console.log(data.email);
-            customerSchema.countDocuments({ email: data.email, _id: { $ne: data.customerId } }).exec(function (err, count) {
+            customerSchema.countDocuments({ email: data.email,loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
                 if (err) {
                     callBack({
                         success: false,
@@ -561,7 +562,7 @@ module.exports = {
                             response_data: {}
                         });
                     } else {
-                        customerSchema.countDocuments({ phone: data.phone, _id: { $ne: data.customerId } }).exec(function (err, count) {
+                        customerSchema.countDocuments({ phone: data.phone,loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
                             if (err) {
                                 callBack({
                                     success: false,
