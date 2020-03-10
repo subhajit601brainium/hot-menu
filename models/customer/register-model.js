@@ -158,7 +158,7 @@ module.exports = {
                                                     userDetails: {
                                                         fullName: result.fullName,
                                                         email: result.email,
-                                                        phone: result.phone,
+                                                        phone: result.phone.toString(),
                                                         socialId: result.socialId,
                                                         id: result._id,
                                                         profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + file_name,
@@ -186,7 +186,7 @@ module.exports = {
                                         userDetails: {
                                             fullName: result.fullName,
                                             email: result.email,
-                                            phone: result.phone,
+                                            phone: result.phone.toString(),
                                             socialId: result.socialId,
                                             id: result._id,
                                             profileImage: '',
@@ -274,7 +274,7 @@ module.exports = {
                                 userDetails: {
                                     fullName: result.fullName,
                                     email: result.email,
-                                    phone: result.phone,
+                                    phone: result.phone.toString(),
                                     socialId: result.socialId,
                                     id: result._id,
                                     profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
@@ -308,7 +308,7 @@ module.exports = {
                                         userDetails: {
                                             fullName: result.fullName,
                                             email: result.email,
-                                            phone: result.phone,
+                                            phone: result.phone.toString(),
                                             socialId: result.socialId,
                                             id: result._id,
                                             profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
@@ -753,7 +753,7 @@ module.exports = {
                                 userDetails: {
                                     fullName: result.fullName,
                                     email: result.email,
-                                    phone: result.phone,
+                                    phone: result.phone.toString(),
                                     id: result._id,
                                     profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
                                     userType: data.userType
@@ -1182,7 +1182,7 @@ module.exports = {
                                 userDetails: {
                                     fullName: result.fullName,
                                     email: result.email,
-                                    phone: result.phone,
+                                    phone: result.phone.toString(),
                                     id: result._id,
                                     profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
                                     userType: data.userType
