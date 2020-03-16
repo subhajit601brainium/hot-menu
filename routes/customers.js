@@ -4,6 +4,8 @@ const config = require('../config');
 const registerService = require('../services/customer/register-service');
 const customerValidator = require('../middlewares/validators/customer/customer-validator');
 const jwtTokenValidator = require('../middlewares/jwt-validation-middlewares');
+const restaurantService = require('../services/customer/restaurant-service');
+const restaurantValidator = require('../middlewares/validators/customer/restaurant-validator');
 
 var customerApi = express.Router();
 customerApi.use(express.json());
@@ -68,6 +70,20 @@ customerApi.post('/changePassword',jwtTokenValidator.validateToken, customerVali
 /** Profile image upload */
 customerApi.post('/profileImageUpload',jwtTokenValidator.validateToken,customerValidator.profileImageUpload, function(req, res) {
     registerService.profileImageUpload(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** Home/Dashboard */
+customerApi.post('/dashboard',jwtTokenValidator.validateToken,restaurantValidator.customerHomeValidator, function(req, res) {
+    restaurantService.customerHome(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** Restaurant Details */
+customerApi.post('/vendorDetails',jwtTokenValidator.validateToken,restaurantValidator.restaurantDetailsValidator, function(req, res) {
+    restaurantService.restaurantDetails(req.body, function(result) {
         res.status(200).send(result);
     });
 })

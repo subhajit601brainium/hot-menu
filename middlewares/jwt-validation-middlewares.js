@@ -7,39 +7,54 @@ const config = require('../config');
  */
 exports.validateToken = async (req, res, next) => {
     //console.log(req.body);
-    var token = req.headers['authorization'];
-    if (token) {
-        if (token.startsWith('Bearer ') || token.startsWith('bearer ')) {
-            // Remove Bearer from string
-            token = token.slice(7, token.length);
-        }
-        // decode token
+
+    var whitelistUrl = ['/api/customer/dashboard', '/api/customer/vendorDetails']
+
+    if ((whitelistUrl.includes(req.originalUrl)) && (req.body.userType == 'GUEST')) {
+        next();
+    } else {
+        var token = req.headers['authorization'];
         if (token) {
-            jwt
-                .verify(token, config.secretKey, function (err, decoded) {
-                    if (err) {
-                        res.status(401).send({
-                            success: false,
-                            STATUSCODE: 401,
-                            message: 'Token not valid',
-                            response_data: {}
-                        });
-                    }
-                    else {
-                         //VALID USER CHECK
-                         if (req.body.customerId != decoded.subject) {
+            if (token.startsWith('Bearer ') || token.startsWith('bearer ')) {
+                // Remove Bearer from string
+                token = token.slice(7, token.length);
+            }
+            // decode token
+            if (token) {
+                jwt
+                    .verify(token, config.secretKey, function (err, decoded) {
+                        if (err) {
                             res.status(401).send({
                                 success: false,
                                 STATUSCODE: 401,
-                                message: 'Request info not valid',
+                                message: 'Token not valid',
                                 response_data: {}
                             });
-                        } else {
-                            next();
                         }
-                    }
+                        else {
+                            //VALID USER CHECK
+                            if (req.body.customerId != decoded.subject) {
+                                res.status(401).send({
+                                    success: false,
+                                    STATUSCODE: 401,
+                                    message: 'Request info not valid',
+                                    response_data: {}
+                                });
+                            } else {
+                                next();
+                            }
+                        }
+                    });
+
+            } else {
+                res.status(401).send({
+                    success: false,
+                    STATUSCODE: 401,
+                    message: 'Token format not valid',
+                    response_data: {}
                 });
 
+            }
         } else {
             res.status(401).send({
                 success: false,
@@ -49,13 +64,6 @@ exports.validateToken = async (req, res, next) => {
             });
 
         }
-    } else {
-        res.status(401).send({
-            success: false,
-            STATUSCODE: 401,
-            message: 'Token format not valid',
-            response_data: {}
-        });
 
     }
 
