@@ -31,16 +31,12 @@ module.exports = {
             
         }
     },
-    restaurantDetailsValidator: async (req, res, next) => {
+    menuDetailsValidator: async (req, res, next) => {
         var userType = ['CUSTOMER','GUEST']
         const rules = joi.object({
             customerId: joi.string().allow('').optional(),
-            categoryId: joi.string().allow('').optional(),
-            vendorId: joi.string().required().error(new Error('vendor Id is required')),
-            restaurantInfo: joi.string().required().error(new Error('Need Restaurant info')),
-            userType: joi.string().valid(...userType).error(new Error('Please send userType')),
-            latitude: joi.string().required().error(new Error('Latitude required')),
-            longitude: joi.string().required().error(new Error('Longitude required'))
+            itemId: joi.string().required().error(new Error('Item id is required')),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType'))
         });
 
         const value = await rules.validate(req.body);
@@ -51,16 +47,7 @@ module.exports = {
                 message: value.error.message
             })
         } else {
-            if((userType == 'CUSTOMER') && (customerId == '')) {
-                res.status(422).json({
-                    success: false,
-                    STATUSCODE: 422,
-                    message: 'Customer Id is required'
-                })
-            } else {
-                next();
-            }
-            
+            next();
         }
     }
 }

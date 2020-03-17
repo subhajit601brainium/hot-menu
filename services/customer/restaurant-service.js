@@ -22,10 +22,10 @@ module.exports = {
             }
         });
     },
-    restaurantDetails: (data, callBack) => {
+    menuDetails: (data, callBack) => {
         async.waterfall([
             function(nextCb) {
-                restaurantModel.restaurantDetails(data, function(result) {
+                restaurantModel.menuDetails(data, function(result) {
                     nextCb(null, result);
                 })
             }
