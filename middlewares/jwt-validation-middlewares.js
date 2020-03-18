@@ -10,7 +10,7 @@ exports.validateToken = async (req, res, next) => {
 
     var whitelistUrl = ['/api/customer/dashboard', '/api/customer/menuDetails']
 
-    if ((whitelistUrl.includes(req.originalUrl)) && (req.body.userType == 'GUEST')) {
+    if ((whitelistUrl.includes(req.originalUrl)) && (req.body.userType == 'guest')) {
         next();
     } else {
         var token = req.headers['authorization'];

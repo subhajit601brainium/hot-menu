@@ -2,7 +2,7 @@ var joi = require('@hapi/joi');
 
 module.exports = {
     customerHomeValidator: async (req, res, next) => {
-        var userType = ['CUSTOMER','GUEST']
+        var userType = ['customer','guest']
         const rules = joi.object({
             customerId: joi.string().allow('').optional(),
             categoryId: joi.string().allow('').optional(),
@@ -32,7 +32,7 @@ module.exports = {
         }
     },
     menuDetailsValidator: async (req, res, next) => {
-        var userType = ['CUSTOMER','GUEST']
+        var userType = ['customer','guest']
         const rules = joi.object({
             customerId: joi.string().allow('').optional(),
             itemId: joi.string().required().error(new Error('Item id is required')),
