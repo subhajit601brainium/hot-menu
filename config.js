@@ -1,6 +1,7 @@
 var config = {
     port: 3480,
     serverhost: 'http://localhost',
+    restaurantSearchDistance: 10000,
     environment: 'development', //development,staging,live
     secretKey: 'hyrgqwjdfbw4534efqrwer2q38945765',
     production: {

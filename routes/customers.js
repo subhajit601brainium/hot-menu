@@ -81,6 +81,13 @@ customerApi.post('/dashboard',jwtTokenValidator.validateToken,restaurantValidato
     });
 })
 
+/** Home/Dashboard */
+customerApi.post('/dashboardMenu',jwtTokenValidator.validateToken,restaurantValidator.customerHomeValidator, function(req, res) {
+    restaurantService.dashboardMenu(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
 /** Menu Details */
 customerApi.post('/menuDetails',jwtTokenValidator.validateToken,restaurantValidator.menuDetailsValidator, function(req, res) {
     restaurantService.menuDetails(req.body, function(result) {

@@ -22,6 +22,26 @@ module.exports = {
             }
         });
     },
+    dashboardMenu: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.dashboardMenu(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
+    },
     menuDetails: (data, callBack) => {
         async.waterfall([
             function(nextCb) {

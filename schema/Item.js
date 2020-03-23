@@ -9,6 +9,7 @@ var itemSchema = new mongoose.Schema({
     type: { type: String, enum: ['VEG', 'CONTAIN EGGS','NON VEG'] },
     description: { type: String, allow: '' },
     ingredients: { type: String, allow: '' },
+    nutrition: { type: Array, allow: '' },
     recipe: { type: String, allow: '' },
     price: { type: Number, required: true },
     waitingTime: { type: String, allow: ''},
