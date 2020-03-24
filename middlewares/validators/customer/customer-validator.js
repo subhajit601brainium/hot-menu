@@ -39,7 +39,7 @@ module.exports = {
     },
 
     customerLogin: async (req, res, next) => {
-        const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
+        const userTypeVal = ["customer", "deliveryboy", "vendorowner","admin"];
         const loginTypeVal = ["FACEBOOK", "GOOGLE", "EMAIL"];
         const rules = joi.object({
             user: joi.string().required().error(new Error('Email/phone is required')),
@@ -62,7 +62,7 @@ module.exports = {
     },
 
     forgotPasswordEmail: async (req, res, next) => {
-        const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
+        const userTypeVal = ["customer", "deliveryboy", "vendorowner","admin"];
         const rules = joi.object({
             email: joi.string().required().email().error((err) => {
                 if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
@@ -87,7 +87,7 @@ module.exports = {
     },
 
     resetPassword: async (req, res, next) => {
-        const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
+        const userTypeVal = ["customer", "deliveryboy", "vendorowner","admin"];
         const rules = joi.object({
             email: joi.string().required().email().error((err) => {
                 if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
@@ -105,6 +105,33 @@ module.exports = {
                 }
             }),
             userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send valid userType'))
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        }
+    },
+
+    resetPasswordAdmin: async (req, res, next) => {
+        const userTypeVal = ["admin"];
+        const rules = joi.object({
+            id: joi.string().required().error(new Error('Admin Id is required')),
+            password: joi.string().required().error(new Error('Password is required')),
+            confirmPassword: joi.string().valid(joi.ref('password')).required().error(err => {
+                if (err[0].value === undefined || err[0].value === '' || err[0].value === null) {
+                    return new Error('Confirm password is required');
+                } else if (err[0].value !== req.body.password) {
+                    return new Error('Password and confirm password must match');
+                }
+            }),
+            userType: joi.string().required().valid(...userTypeVal).error(new Error('Please send userType'))
         });
 
         const value = await rules.validate(req.body);

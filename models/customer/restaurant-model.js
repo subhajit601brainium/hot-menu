@@ -574,7 +574,7 @@ module.exports = {
                         ingredients: res.ingredients,
                         nutrition : res.nutrition,
                         price: res.price,
-                        image: `${config.serverhost}:${config.port}/vendor/${res.menuImage}`
+                        image: `${config.serverhost}:${config.port}/img/vendor/${res.menuImage}`
                     };
 
                     if (res.recipe != '') {

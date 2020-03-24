@@ -74,6 +74,26 @@ customerApi.post('/profileImageUpload',jwtTokenValidator.validateToken,customerV
     });
 })
 
+customerApi.post('/forgotPasswordAdmin', customerValidator.forgotPasswordEmail, function(req, res) {
+    registerService.forgotPasswordAdmin(req.body, function(result) {
+        res.status(200).send(result);
+    })
+});
+
+/** Reset Password Admin */
+customerApi.post('/resetPasswordAdmin', customerValidator.resetPasswordAdmin, function(req, res) {
+    registerService.resetPasswordAdmin(req.body, function(result) {
+        res.status(200).send(result);
+    });
+});
+
+/** Change password Admin */
+customerApi.post('/changePasswordAdmin',jwtTokenValidator.validateToken, customerValidator.changePassword, function(req, res) {
+    registerService.changePasswordAdmin(req.body, function(result) {
+        res.status(200).send(result);
+    });
+})
+
 /** Home/Dashboard */
 customerApi.post('/dashboard',jwtTokenValidator.validateToken,restaurantValidator.customerHomeValidator, function(req, res) {
     restaurantService.customerHome(req, function(result) {
