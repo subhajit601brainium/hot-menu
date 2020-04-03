@@ -224,7 +224,7 @@ module.exports = {
         }
     },
     changePassword: async (req, res, next) => {
-        const userTypeVal = ["customer", "deliveryboy", "vendorowner"];
+        const userTypeVal = ["customer", "deliveryboy", "vendorowner","admin"];
         const rules = joi.object({
             customerId: joi.string().required().error(new Error('Customer id is required')),
             oldPassword: joi.string().required().error(new Error('Old password is required')),

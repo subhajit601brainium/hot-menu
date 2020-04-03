@@ -4,6 +4,7 @@ var config = {
     restaurantSearchDistance: 10000,
     environment: 'development', //development,staging,live
     secretKey: 'hyrgqwjdfbw4534efqrwer2q38945765',
+    adminUrl: 'http://localhost:4200/#/',
     production: {
         username: 'brain1uMMong0User',
         password: 'PL5qnU9nuvX0pBa',

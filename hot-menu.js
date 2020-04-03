@@ -10,8 +10,10 @@ var https = require('https');
 const config = require('./config');
 const mongoose = require('mongoose');
 const corsMiddleWare = require('./middlewares/cors-middleware');
+var cors = require('cors');
 
 var app = express();
+app.use(cors());
 
 //======== Create Server Starts =======//
 
@@ -54,6 +56,9 @@ app.use(corsMiddleWare);
 
 const customerRoutes = require('./routes/customers');
 app.use('/api/customer', customerRoutes);
+
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
 
 //===== MongoDB Connection starts =====//
 const productionDBString = `mongodb://${config.production.username}:${config.production.password}@${config.production.host}:${config.production.port}/${config.production.dbName}?authSource=${config.production.authDb}`;
