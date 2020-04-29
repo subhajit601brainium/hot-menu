@@ -86,6 +86,52 @@ module.exports = {
        
     },
 
+    resendLoginOTP: (data, callBack) => {
+            async.waterfall([
+                function(nextCb) {
+                    registerModel.resendLoginOTP(data, function(result) {
+                        nextCb(null, result);
+                    })
+                }
+            ], function(err, result) {
+                if (err) {
+                    callBack({
+                        success: false,
+                        STATUSCODE: 403,
+                        message: 'Request Forbidden',
+                        response_data: {}
+                    })
+                } else {
+                    callBack(result);
+                }
+            });
+        
+       
+    },
+
+    customerPhoneLogin: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                registerModel.customerPhoneLogin(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
+    
+   
+},
+
     forgotPassword: (data, callBack) => {
         if(data.userType == 'customer') {
 

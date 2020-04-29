@@ -8,7 +8,8 @@ module.exports = {
             categoryId: joi.string().allow('').optional(),
             userType: joi.string().valid(...userType).error(new Error('Please send userType')),
             latitude: joi.string().required().error(new Error('Latitude required')),
-            longitude: joi.string().required().error(new Error('Longitude required'))
+            longitude: joi.string().required().error(new Error('Longitude required')),
+            filter: joi.any().allow('').optional()
         });
 
         const value = await rules.validate(req.body);
@@ -49,5 +50,63 @@ module.exports = {
         } else {
             next();
         }
-    }
+    },
+    offerItemList: async (req, res, next) => {
+        var userType = ['customer','guest']
+        const rules = joi.object({
+            customerId: joi.string().allow('').optional(),
+            offerId: joi.string().required().error(new Error('Offer id is required')),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType')),
+            latitude: joi.string().required().error(new Error('Latitude required')),
+            longitude: joi.string().required().error(new Error('Longitude required'))
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            if((userType == 'CUSTOMER') && (customerId == '')) {
+                res.status(422).json({
+                    success: false,
+                    STATUSCODE: 422,
+                    message: 'Customer Id is required'
+                })
+            } else {
+                next();
+            }
+            
+        }
+    },
+
+    promoCodeList: async (req, res, next) => {
+        var userType = ['customer','guest']
+        const rules = joi.object({
+            customerId: joi.string().allow('').optional(),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType'))
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            if((userType == 'CUSTOMER') && (customerId == '')) {
+                res.status(422).json({
+                    success: false,
+                    STATUSCODE: 422,
+                    message: 'Customer Id is required'
+                })
+            } else {
+                next();
+            }
+            
+        }
+    },
 }

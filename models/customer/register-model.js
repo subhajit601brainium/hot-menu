@@ -3,6 +3,7 @@ var jwt = require('jsonwebtoken');
 var customerSchema = require('../../schema/Customer');
 var deliveryBoySchema = require('../../schema/DeliveryBoy');
 var vendorOwnerSchema = require('../../schema/VendorOwner');
+var settingSchema = require('../../schema/Setting');
 const config = require('../../config');
 const mail = require('../../modules/sendEmail');
 var bcrypt = require('bcryptjs');
@@ -241,6 +242,7 @@ module.exports = {
         if (data) {
 
             var loginUser = '';
+            var phoneLogin = 0;
 
 
             if (data.loginType != 'EMAIL') {
@@ -253,15 +255,14 @@ module.exports = {
                 } else {
                     var loginCond = { phone: data.user };
                     loginUser = 'PHONE';
+                    phoneLogin = 1;
                 }
             }
 
-            loginCond.userType = data.userType;
+         //   loginCond.userType = data.userType;
 
-
-
-
-            customerSchema.findOne(loginCond, function (err, result) {
+            console.log(loginCond);
+            customerSchema.findOne(loginCond, async function (err, result) {
                 if (err) {
                     callBack({
                         success: false,
@@ -271,8 +272,10 @@ module.exports = {
                     });
                 } else {
                     if (result) {
+                        console.log(result);
                         if (loginUser == 'SOCIAL') { //IF SOCIAL LOGIN THEN NO NEED TO CHECK THE PASSWORD 
                             const authToken = generateToken(result);
+                            var settings = await settingSchema.findOne();
                             let response = {
                                 userDetails: {
                                     fullName: result.fullName,
@@ -284,7 +287,8 @@ module.exports = {
                                     userType: data.userType,
                                     loginType: data.loginType
                                 },
-                                authToken: authToken
+                                authToken: authToken,
+                                settings: settings
                             }
 
                             callBack({
@@ -294,7 +298,22 @@ module.exports = {
                                 response_data: response
                             })
 
-                        } else { //NORMAL LOGIN
+                        } else if (loginUser == 'PHONE') {
+                            let response = {
+                                email: result.email,
+                                phone: result.phone.toString(),
+                                otp: config.loginOtp.toString(),
+                                sid: '0000'
+                            }
+
+                            callBack({
+                                success: true,
+                                STATUSCODE: 202,
+                                message: 'Login Successfull',
+                                response_data: response
+                            })
+                        }
+                        else { //NORMAL LOGIN
                             if ((data.password == '') || (data.password == undefined)) {
                                 callBack({
                                     success: false,
@@ -304,9 +323,12 @@ module.exports = {
                                 });
                             } else {
 
+
                                 const comparePass = bcrypt.compareSync(data.password, result.password);
                                 if (comparePass) {
                                     const authToken = generateToken(result);
+                                    var settings = await settingSchema.findOne();
+
                                     let response = {
                                         userDetails: {
                                             fullName: result.fullName,
@@ -318,7 +340,8 @@ module.exports = {
                                             userType: data.userType,
                                             loginType: data.loginType
                                         },
-                                        authToken: authToken
+                                        authToken: authToken,
+                                        settings: settings
                                     }
 
                                     callBack({
@@ -328,6 +351,7 @@ module.exports = {
                                         response_data: response
                                     })
 
+
                                 } else {
                                     callBack({
                                         success: false,
@@ -336,6 +360,9 @@ module.exports = {
                                         response_data: {}
                                     });
                                 }
+
+
+
                             }
                         }
                     } else {
@@ -360,9 +387,114 @@ module.exports = {
             })
         }
     },
+
+    resendLoginOTP: (data, callBack) => {
+        if (data) {
+            var phone = data.phone;
+            customerSchema.findOne({ phone: phone }, function (err, result) {
+                if (err) {
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Internal DB error',
+                        response_data: {}
+                    });
+                } else {
+                    if (result) {
+                        let response = {
+                            email: result.email,
+                            phone: result.phone.toString(),
+                            otp: config.loginOtp.toString(),
+                            sid: '0000'
+                        }
+
+                        callBack({
+                            success: true,
+                            STATUSCODE: 200,
+                            message: 'OTP send successfully.',
+                            response_data: response
+                        })
+                        
+
+                    } else {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'Invalid Phone no.',
+                            response_data: {}
+                        })
+                    }
+                }
+            });
+
+        }
+    },
+
+    customerPhoneLogin: (data, callBack) => {
+        if (data) {
+            var otp = data.otp;
+            var phone = data.phone;
+            customerSchema.findOne({ phone: data.phone }, async function (err, result) {
+                if (err) {
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Internal DB error',
+                        response_data: {}
+                    });
+                } else {
+                    if (result) {
+
+                        if (otp == config.loginOtp) {
+                            const authToken = generateToken(result);
+                            var settings = await settingSchema.findOne();
+
+                            let response = {
+                                userDetails: {
+                                    fullName: result.fullName,
+                                    email: result.email,
+                                    phone: result.phone.toString(),
+                                    socialId: result.socialId,
+                                    id: result._id,
+                                    profileImage: `${config.serverhost}:${config.port}/img/profile-pic/` + result.profileImage,
+                                    userType: data.userType,
+                                    loginType: data.loginType
+                                },
+                                authToken: authToken,
+                                settings: settings
+                            }
+
+                            callBack({
+                                success: true,
+                                STATUSCODE: 200,
+                                message: 'Login Successfull',
+                                response_data: response
+                            })
+                        } else {
+                            callBack({
+                                success: false,
+                                STATUSCODE: 422,
+                                message: 'Invalid OTP',
+                                response_data: {}
+                            })
+                        }
+
+                    } else {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'Invalid Phone no.',
+                            response_data: {}
+                        })
+                    }
+                }
+            });
+
+        }
+    },
     customerForgotPassword: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email,loginType:'GENERAL'}, function (err, customer) {
+            customerSchema.findOne({ email: data.email, loginType: 'GENERAL' }, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -403,7 +535,7 @@ module.exports = {
     },
     customerResetPassword: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email,loginType: 'GENERAL' }, { _id: 1 }, function (err, customer) {
+            customerSchema.findOne({ email: data.email, loginType: 'GENERAL' }, { _id: 1 }, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -459,7 +591,7 @@ module.exports = {
     },
     customerResendForgotPasswordOtp: (data, callBack) => {
         if (data) {
-            customerSchema.findOne({ email: data.email,loginType: 'GENERAL' }, function (err, customer) {
+            customerSchema.findOne({ email: data.email, loginType: 'GENERAL' }, function (err, customer) {
                 if (err) {
                     callBack({
                         success: false,
@@ -548,7 +680,7 @@ module.exports = {
             /** Check for customer existence */
             console.log(data.customerId);
             console.log(data.email);
-            customerSchema.countDocuments({ email: data.email,loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
+            customerSchema.countDocuments({ email: data.email, loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
                 if (err) {
                     callBack({
                         success: false,
@@ -565,7 +697,7 @@ module.exports = {
                             response_data: {}
                         });
                     } else {
-                        customerSchema.countDocuments({ phone: data.phone,loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
+                        customerSchema.countDocuments({ phone: data.phone, loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
                             if (err) {
                                 callBack({
                                     success: false,
@@ -1646,7 +1778,7 @@ module.exports = {
                     });
                 } else {
                     if (customer) {
-                       // console.log(customer);
+                        // console.log(customer);
                         console.log(data.password);
                         bcrypt.hash(data.password, 8, function (err, hash) {
                             if (err) {

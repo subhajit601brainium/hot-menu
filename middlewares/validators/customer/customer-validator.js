@@ -61,6 +61,45 @@ module.exports = {
         }
     },
 
+    resendLoginOTP: async (req, res, next) => {
+        const rules = joi.object({
+            phone: joi.number().required().error(new Error('phone is required'))
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            console.log(value.error);
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        }
+    },
+
+    customerPhoneLogin: async (req, res, next) => {
+        const rules = joi.object({
+            phone: joi.number().required().error(new Error('phone is required')),
+            otp: joi.string().required().error(new Error('Otp is required')),
+            sid: joi.string().required().error(new Error('Sid is required'))
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            console.log(value.error);
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        }
+    },
+
+
     forgotPasswordEmail: async (req, res, next) => {
         const userTypeVal = ["customer", "deliveryboy", "vendorowner","admin"];
         const rules = joi.object({

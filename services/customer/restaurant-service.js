@@ -61,5 +61,45 @@ module.exports = {
                 callBack(result);
             }
         });
+    },
+    offerItemList: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.offerItemList(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
+    },
+    promoCodeList: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.promoCodeList(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
     }
 }

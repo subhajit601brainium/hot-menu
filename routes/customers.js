@@ -25,6 +25,20 @@ customerApi.post('/login', customerValidator.customerLogin, function(req, res) {
     })
 });
 
+/** Customer Phone Login */
+customerApi.post('/resendLoginOTP', customerValidator.resendLoginOTP, function(req, res) {
+    registerService.resendLoginOTP(req.body, function(result) {
+        res.status(200).send(result);
+    })
+});
+
+/** Customer Phone Login */
+customerApi.post('/secondStepLogin', customerValidator.customerPhoneLogin, function(req, res) {
+    registerService.customerPhoneLogin(req.body, function(result) {
+        res.status(200).send(result);
+    })
+});
+
 /** Forgot Password */
 customerApi.post('/forgotPassword', customerValidator.forgotPasswordEmail, function(req, res) {
     registerService.forgotPassword(req.body, function(result) {
@@ -111,6 +125,20 @@ customerApi.post('/dashboardMenu',jwtTokenValidator.validateToken,restaurantVali
 /** Menu Details */
 customerApi.post('/menuDetails',jwtTokenValidator.validateToken,restaurantValidator.menuDetailsValidator, function(req, res) {
     restaurantService.menuDetails(req.body, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** Top Banner Data */
+customerApi.post('/offerItemList',jwtTokenValidator.validateToken,restaurantValidator.offerItemList, function(req, res) {
+    restaurantService.offerItemList(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** All promo List */
+customerApi.post('/promoCodeList',jwtTokenValidator.validateToken,restaurantValidator.promoCodeList, function(req, res) {
+    restaurantService.promoCodeList(req, function(result) {
         res.status(200).send(result);
     });
 })

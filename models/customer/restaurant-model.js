@@ -8,12 +8,14 @@ var ratingSchema = require('../../schema/Rating');
 var customerSchema = require('../../schema/Customer');
 var offerSchema = require('../../schema/Offer');
 var mapOfferItemSchema = require('../../schema/MapOfferItem');
+var promoCodeSchema = require('../../schema/PromoCode');
 var config = require('../../config');
 
 module.exports = {
     //Customer Home/Dashboard API
     customerHome: (data, callBack) => {
         if (data) {
+
             var latt = data.body.latitude;
             var long = data.body.longitude;
             var userType = data.body.userType;
@@ -51,10 +53,11 @@ module.exports = {
                                 }
 
 
-                                itemSchema.find({ 
-                                categoryId: categoryId,
-                                topSelling: 'YES',
-                                vendorId: { $in: allnearestVendorIds } })
+                                itemSchema.find({
+                                    categoryId: categoryId,
+                                    topSelling: 'YES',
+                                    vendorId: { $in: allnearestVendorIds }
+                                })
                                     .limit(4)
                                     .exec(async function (err, results) {
                                         if (err) {
@@ -67,16 +70,38 @@ module.exports = {
                                             });
                                         } else {
                                             var itemArr = [];
+                                            var filterArr = [];
                                             if (results.length > 0) {
                                                 for (let itemValue of results) {
                                                     var itemObj = {};
+                                                    var filterObj = {};
                                                     itemObj.id = itemValue._id;
+                                                    itemObj.vendorId = itemValue.vendorId;
                                                     itemObj.image = `${config.serverhost}:${config.port}/img/vendor/${itemValue.menuImage}`;
                                                     itemObj.name = itemValue.itemName;
                                                     itemObj.price = itemValue.price;
-                                                    itemObj.tags = await tagSchema.find({
+
+                                                    var itmTags = await tagSchema.find({
                                                         _id: { $in: itemValue.tagId }
                                                     });
+
+                                                    if(itmTags.length > 0) {
+                                                        for(let itmtg of itmTags) {
+                                                            filterArr.push(itmtg);
+                                                        }
+                                                    }
+                                                    
+                                                    itemObj.tags = itmTags;
+
+
+                                                    //Calculate Distance
+                                                    var restaurant = await vendorSchema.findOne({ _id: itemValue.vendorId });
+                                                    var sourceLat = restaurant.location.coordinates[1];
+                                                    var sourceLong = restaurant.location.coordinates[0];
+
+                                                    var destLat = latt;
+                                                    var destLong = long;
+                                                    itemObj.distanceKM = await getDistance(sourceLat, sourceLong, destLat, destLong);
 
                                                     //Offer
                                                     var checkOffer = await mapOfferItemSchema.findOne({ isActive: true, itemId: itemValue._id });
@@ -97,6 +122,9 @@ module.exports = {
 
                                             //ITEM
                                             response_data.items = itemArr;
+
+                                            //FILTER
+                                            response_data.filter = filterArr;
 
 
 
@@ -121,7 +149,7 @@ module.exports = {
                             }
                         }
                     });
-                
+
 
             } else {
 
@@ -145,7 +173,19 @@ module.exports = {
                                     if (bannerValue.onTop == 'YES') {
                                         bannerOnTop = bannerValue;
                                     } else {
-                                        bannerMiddle = bannerValue;
+                                        //GET ITEM ID
+                                        var itemInfo = await mapOfferItemSchema.findOne({ offerId: bannerValue.offerId });
+                                        bannerMiddle = {
+                                            _id: bannerValue._id,
+                                            offerId: bannerValue.offerId,
+                                            type: bannerValue.type,
+                                            onTop: bannerValue.onTop,
+                                            bannerType: bannerValue.bannerType,
+                                            image: bannerValue.image,
+                                            createdAt: bannerValue.createdAt,
+                                            updatedAt: bannerValue.updatedAt,
+                                            itemid: itemInfo.itemId
+                                        }
                                         bannerMiddleArr.push(bannerMiddle);
                                     }
 
@@ -172,7 +212,7 @@ module.exports = {
                                         response_data.category_list = results;
                                         response_data.category_url = `${config.serverhost}:${config.port}/img/category/`;
 
-                                      //  console.log(results);
+                                        //  console.log(results);
                                         if (results.length > 0) {
                                             var categoryId = results[0]._id;
 
@@ -204,11 +244,40 @@ module.exports = {
                                                                 allnearestVendorIds.push(vendor._id);
                                                             }
 
-
-                                                            itemSchema.find({ 
-                                                            categoryId: categoryId,
-                                                            topSelling: 'YES',
-                                                            vendorId: { $in: allnearestVendorIds } })
+                                                            //FILTER START
+                                                            if ((data.body.filter == '') || (data.body.filter == undefined)) {
+                                                                var filterData = '';
+                                                            } else {
+                                                                var filterData = data.body.filter;
+                                                                if (typeof filterData == 'string') {
+                                                                    filterData = JSON.parse(filterData);
+                                                                } else {
+                                                                    filterData = data.body.filter;
+                                                                }
+                                                                
+                                                            }
+                                                            var itemCheckCond = {
+                                                                topSelling: 'YES',
+                                                                vendorId: { $in: allnearestVendorIds }
+                                                            }
+                                                            if (filterData != '') {
+                                                                //  console.log(filterData);
+                                                                  if((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
+                                                                      itemCheckCond.categoryId = filterData.categoryId;
+                                                                  } else {
+                                                                      itemCheckCond.categoryId = categoryId;
+                                                                  }
+                                                                  if((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
+                                                                      itemCheckCond.type = filterData.foodpreferType;
+                                                                  }
+                                                                  if((filterData.tagId != '') && (filterData.tagId != undefined)) {
+                                                                      itemCheckCond.tagId = filterData.tagId;
+                                                                  }
+                                                              } else {
+                                                                  itemCheckCond.categoryId = categoryId;
+                                                              }
+                                                            //FILTER END
+                                                            itemSchema.find(itemCheckCond)
                                                                 .limit(4)
                                                                 .exec(async function (err, results) {
                                                                     if (err) {
@@ -221,16 +290,36 @@ module.exports = {
                                                                         });
                                                                     } else {
                                                                         var itemArr = [];
+                                                                        var filterArr = [];
                                                                         if (results.length > 0) {
                                                                             for (let itemValue of results) {
                                                                                 var itemObj = {};
+                                                                                var filterObj = {};
                                                                                 itemObj.id = itemValue._id;
+                                                                                itemObj.vendorId = itemValue.vendorId;
                                                                                 itemObj.image = `${config.serverhost}:${config.port}/img/vendor/${itemValue.menuImage}`;
                                                                                 itemObj.name = itemValue.itemName;
                                                                                 itemObj.price = itemValue.price;
-                                                                                itemObj.tags = await tagSchema.find({
+                                                                                var itmTags = await tagSchema.find({
                                                                                     _id: { $in: itemValue.tagId }
                                                                                 });
+
+                                                                                if(itmTags.length > 0) {
+                                                                                    for(let itmtg of itmTags) {
+                                                                                        filterArr.push(itmtg);
+                                                                                    }
+                                                                                }
+
+                                                                                itemObj.tags = itmTags;
+
+                                                                                //Calculate Distance
+                                                                                var restaurant = await vendorSchema.findOne({ _id: itemValue.vendorId });
+                                                                                var sourceLat = restaurant.location.coordinates[1];
+                                                                                var sourceLong = restaurant.location.coordinates[0];
+
+                                                                                var destLat = latt;
+                                                                                var destLong = long;
+                                                                                itemObj.distanceKM = await getDistance(sourceLat, sourceLong, destLat, destLong);
 
                                                                                 //Offer
                                                                                 var checkOffer = await mapOfferItemSchema.findOne({ isActive: true, itemId: itemValue._id });
@@ -246,11 +335,16 @@ module.exports = {
                                                                                     itemObj.offer = {};
                                                                                 }
                                                                                 itemArr.push(itemObj);
+                                                                                
                                                                             }
+
                                                                         }
 
                                                                         //ITEM
                                                                         response_data.items = itemArr;
+
+                                                                        //FILTER
+                                                                        response_data.tagList = filterArr;
 
 
 
@@ -325,9 +419,10 @@ module.exports = {
                                 }
 
 
-                                itemSchema.find({ 
-                                categoryId: categoryId,
-                                vendorId: { $in: allnearestVendorIds } })
+                                itemSchema.find({
+                                    categoryId: categoryId,
+                                    vendorId: { $in: allnearestVendorIds }
+                                })
                                     .limit(4)
                                     .exec(async function (err, results) {
                                         if (err) {
@@ -340,16 +435,36 @@ module.exports = {
                                             });
                                         } else {
                                             var itemArr = [];
+                                            var filterArr = [];
                                             if (results.length > 0) {
                                                 for (let itemValue of results) {
                                                     var itemObj = {};
                                                     itemObj.id = itemValue._id;
+                                                    itemObj.vendorId = itemValue.vendorId;
                                                     itemObj.image = `${config.serverhost}:${config.port}/img/vendor/${itemValue.menuImage}`;
                                                     itemObj.name = itemValue.itemName;
                                                     itemObj.price = itemValue.price;
-                                                    itemObj.tags = await tagSchema.find({
+
+                                                    var itmTags = await tagSchema.find({
                                                         _id: { $in: itemValue.tagId }
                                                     });
+
+                                                    if(itmTags.length > 0) {
+                                                        for(let itmtg of itmTags) {
+                                                            filterArr.push(itmtg);
+                                                        }
+                                                    }
+
+                                                    itemObj.tags = itmTags;
+
+                                                    //Calculate Distance
+                                                    var restaurant = await vendorSchema.findOne({ _id: itemValue.vendorId });
+                                                    var sourceLat = restaurant.location.coordinates[1];
+                                                    var sourceLong = restaurant.location.coordinates[0];
+
+                                                    var destLat = latt;
+                                                    var destLong = long;
+                                                    itemObj.distanceKM = await getDistance(sourceLat, sourceLong, destLat, destLong);
 
                                                     //Offer
                                                     var checkOffer = await mapOfferItemSchema.findOne({ isActive: true, itemId: itemValue._id });
@@ -370,6 +485,9 @@ module.exports = {
 
                                             //ITEM
                                             response_data.items = itemArr;
+
+                                            //FILTER
+                                            response_data.tagList = filterArr;
 
 
 
@@ -394,7 +512,7 @@ module.exports = {
                             }
                         }
                     });
-                
+
 
             } else {
 
@@ -418,7 +536,19 @@ module.exports = {
                                     if (bannerValue.onTop == 'YES') {
                                         bannerOnTop = bannerValue;
                                     } else {
-                                        bannerMiddle = bannerValue;
+                                        //GET ITEM ID
+                                        var itemInfo = await mapOfferItemSchema.findOne({ offerId: bannerValue.offerId });
+                                        bannerMiddle = {
+                                            _id: bannerValue._id,
+                                            offerId: bannerValue.offerId,
+                                            type: bannerValue.type,
+                                            onTop: bannerValue.onTop,
+                                            bannerType: bannerValue.bannerType,
+                                            image: bannerValue.image,
+                                            createdAt: bannerValue.createdAt,
+                                            updatedAt: bannerValue.updatedAt,
+                                            itemid: itemInfo.itemId
+                                        }
                                         bannerMiddleArr.push(bannerMiddle);
                                     }
 
@@ -445,7 +575,7 @@ module.exports = {
                                         response_data.category_list = results;
                                         response_data.category_url = `${config.serverhost}:${config.port}/img/category/`;
 
-                                      //  console.log(results);
+                                        //  console.log(results);
                                         if (results.length > 0) {
                                             var categoryId = results[0]._id;
 
@@ -476,11 +606,39 @@ module.exports = {
                                                             for (let vendor of results) {
                                                                 allnearestVendorIds.push(vendor._id);
                                                             }
-
-
-                                                            itemSchema.find({ 
-                                                            categoryId: categoryId,
-                                                            vendorId: { $in: allnearestVendorIds } })
+                                                             //FILTER START
+                                                             if ((data.body.filter == '') || (data.body.filter == undefined)) {
+                                                                var filterData = '';
+                                                            } else {
+                                                                var filterData = data.body.filter;
+                                                                if (typeof filterData == 'string') {
+                                                                    filterData = JSON.parse(filterData);
+                                                                } else {
+                                                                    filterData = data.body.filter;
+                                                                }
+                                                                
+                                                            }
+                                                            var itemCheckCond = {
+                                                                vendorId: { $in: allnearestVendorIds }
+                                                            }
+                                                            if (filterData != '') {
+                                                              //  console.log(filterData);
+                                                                if((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
+                                                                    itemCheckCond.categoryId = filterData.categoryId;
+                                                                } else {
+                                                                    itemCheckCond.categoryId = categoryId;
+                                                                }
+                                                                if((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
+                                                                    itemCheckCond.type = filterData.foodpreferType;
+                                                                }
+                                                                if((filterData.tagId != '') && (filterData.tagId != undefined)) {
+                                                                    itemCheckCond.tagId = filterData.tagId;
+                                                                }
+                                                            } else {
+                                                                itemCheckCond.categoryId = categoryId;
+                                                            }
+                                                            //FILTER END
+                                                            itemSchema.find(itemCheckCond)
                                                                 .limit(4)
                                                                 .exec(async function (err, results) {
                                                                     if (err) {
@@ -493,16 +651,35 @@ module.exports = {
                                                                         });
                                                                     } else {
                                                                         var itemArr = [];
+                                                                        var filterArr = [];
                                                                         if (results.length > 0) {
                                                                             for (let itemValue of results) {
                                                                                 var itemObj = {};
                                                                                 itemObj.id = itemValue._id;
+                                                                                itemObj.vendorId = itemValue.vendorId;
                                                                                 itemObj.image = `${config.serverhost}:${config.port}/img/vendor/${itemValue.menuImage}`;
                                                                                 itemObj.name = itemValue.itemName;
                                                                                 itemObj.price = itemValue.price;
-                                                                                itemObj.tags = await tagSchema.find({
+                                                                                var itmTags = await tagSchema.find({
                                                                                     _id: { $in: itemValue.tagId }
                                                                                 });
+                            
+                                                                                if(itmTags.length > 0) {
+                                                                                    for(let itmtg of itmTags) {
+                                                                                        filterArr.push(itmtg);
+                                                                                    }
+                                                                                }
+                            
+                                                                                itemObj.tags = itmTags;
+
+                                                                                //Calculate Distance
+                                                                                var restaurant = await vendorSchema.findOne({ _id: itemValue.vendorId });
+                                                                                var sourceLat = restaurant.location.coordinates[1];
+                                                                                var sourceLong = restaurant.location.coordinates[0];
+
+                                                                                var destLat = latt;
+                                                                                var destLong = long;
+                                                                                itemObj.distanceKM = await getDistance(sourceLat, sourceLong, destLat, destLong);
 
                                                                                 //Offer
                                                                                 var checkOffer = await mapOfferItemSchema.findOne({ isActive: true, itemId: itemValue._id });
@@ -523,6 +700,9 @@ module.exports = {
 
                                                                         //ITEM
                                                                         response_data.items = itemArr;
+
+                                                                        //FILTER
+                                                                        response_data.tagList = filterArr;
 
 
 
@@ -572,7 +752,7 @@ module.exports = {
                         type: res.type,
                         description: res.description,
                         ingredients: res.ingredients,
-                        nutrition : res.nutrition,
+                        nutrition: res.nutrition,
                         price: res.price,
                         image: `${config.serverhost}:${config.port}/img/vendor/${res.menuImage}`
                     };
@@ -666,6 +846,225 @@ module.exports = {
 
 
         }
+    },
+    //Customer Offer List API
+    offerItemList: (data, callBack) => {
+        if (data) {
+            // console.log(data.body);
+            var offerId = data.body.offerId;
+            var latt = data.body.latitude;
+            var long = data.body.longitude;
+            var response_data = {};
+
+            mapOfferItemSchema.find({ isActive: true, offerId: offerId })
+                .then(function (mapoffers) {
+
+                    if (mapoffers.length > 0) {
+                        var itemIdsArr = [];
+                        for (let mapoffer of mapoffers) {
+                            itemIdsArr.push(mapoffer.itemId);
+                        }
+                        vendorSchema.find({
+                            location: {
+                                $near: {
+                                    $maxDistance: config.restaurantSearchDistance,
+                                    $geometry: {
+                                        type: "Point",
+                                        coordinates: [long, latt]
+                                    }
+                                }
+                            },
+                            isActive: true
+                        })
+                            .exec(async function (err, results) {
+                                if (err) {
+                                    callBack({
+                                        success: false,
+                                        STATUSCODE: 500,
+                                        message: 'Internal DB error',
+                                        response_data: {}
+                                    });
+                                } else {
+                                    if (results.length > 0) { //Nearest Vendor Found
+                                        var allnearestVendorIds = [];
+
+                                        for (let vendor of results) {
+                                            allnearestVendorIds.push(vendor._id);
+                                        }
+
+
+                                        itemSchema.find({
+                                            _id: { $in: itemIdsArr },
+                                            vendorId: { $in: allnearestVendorIds }
+                                        })
+                                            .limit(4)
+                                            .exec(async function (err, results) {
+                                                if (err) {
+                                                    console.log(err);
+                                                    callBack({
+                                                        success: false,
+                                                        STATUSCODE: 500,
+                                                        message: 'Internal error',
+                                                        response_data: {}
+                                                    });
+                                                } else {
+                                                    var itemArr = [];
+                                                    var filterArr = [];
+                                                    if (results.length > 0) {
+                                                        for (let itemValue of results) {
+                                                            var itemObj = {};
+                                                            itemObj.id = itemValue._id;
+                                                            itemObj.vendorId = itemValue.vendorId;
+                                                            itemObj.image = `${config.serverhost}:${config.port}/img/vendor/${itemValue.menuImage}`;
+                                                            itemObj.name = itemValue.itemName;
+                                                            itemObj.price = itemValue.price;
+                                                            var itmTags = await tagSchema.find({
+                                                                _id: { $in: itemValue.tagId }
+                                                            });
+        
+                                                            if(itmTags.length > 0) {
+                                                                for(let itmtg of itmTags) {
+                                                                    filterArr.push(itmtg);
+                                                                }
+                                                            }
+        
+                                                            itemObj.tags = itmTags;
+
+                                                            //Calculate Distance
+                                                            var restaurant = await vendorSchema.findOne({ _id: itemValue.vendorId });
+                                                            var sourceLat = restaurant.location.coordinates[1];
+                                                            var sourceLong = restaurant.location.coordinates[0];
+
+                                                            var destLat = latt;
+                                                            var destLong = long;
+                                                            itemObj.distanceKM = await getDistance(sourceLat, sourceLong, destLat, destLong);
+
+                                                            //Offer
+                                                            var checkOffer = await mapOfferItemSchema.findOne({ isActive: true, itemId: itemValue._id });
+                                                            if (checkOffer != null) {
+                                                                //  console.log(checkOffer);
+                                                                var offerTake = await offerSchema.findOne({ $and: [{ fromDate: { $lte: new Date() } }, { toDate: { $gte: new Date() } }], _id: checkOffer.offerId });
+                                                                if (offerTake == null) {
+                                                                    itemObj.offer = {};
+                                                                } else {
+                                                                    itemObj.offer = offerTake;
+                                                                }
+                                                            } else {
+                                                                itemObj.offer = {};
+                                                            }
+                                                            itemArr.push(itemObj);
+                                                        }
+                                                    }
+
+                                                    //ITEM
+                                                    response_data.items = itemArr;
+
+                                                    //FILTER
+                                                    response_data.tagList = filterArr;
+
+
+
+                                                    callBack({
+                                                        success: true,
+                                                        STATUSCODE: 200,
+                                                        message: 'Item List.',
+                                                        response_data: response_data
+                                                    });
+
+                                                }
+                                            });
+
+                                    } else {
+                                        response_data.items = [];
+                                        callBack({
+                                            success: true,
+                                            STATUSCODE: 200,
+                                            message: 'Item List.',
+                                            response_data: response_data
+                                        });
+                                    }
+                                }
+                            });
+
+                    } else {
+                        response_data.items = [];
+                        callBack({
+                            success: true,
+                            STATUSCODE: 200,
+                            message: 'Item List.',
+                            response_data: response_data
+                        });
+                    }
+
+
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Internal error',
+                        response_data: {}
+                    });
+                })
+        }
+    },
+    //Customer Offer List API
+    promoCodeList: (data, callBack) => {
+        if (data) {
+            // var promoData = {
+            //     fromDate: new Date(),
+            //     toDate: new Date(),
+            //     promoType: 'PERCENTAGE',
+            //     promoPrice: 40,
+            //     promoConditions: 'Get 40 % off above Rs 499 for all dishes',
+            //     promoCode: 'FMAPP 40'
+            // }
+            // new promoCodeSchema(promoData).save(async function (err, result) {
+            //     console.log(err);
+            // });
+            promoCodeSchema.find()
+            .then((allcodes) => {
+                callBack({
+                    success: true,
+                    STATUSCODE: 200,
+                    message: 'All Promo Code',
+                    response_data: {code: allcodes}
+                });
+            })
+            .catch((error) => {
+                console.log(error);
+                callBack({
+                    success: false,
+                    STATUSCODE: 500,
+                    message: 'Internal DB error',
+                    response_data: {}
+                });
+            });
+        }
     }
+}
+
+//getDistance(start, end, accuracy = 1)
+function getDistance(sourceLat, sourceLong, destinationLat, destinationLong) {
+    return new Promise(function (resolve, reject) {
+        const geolib = require('geolib');
+
+        var distanceCal = geolib.getDistance(
+            { latitude: sourceLat, longitude: sourceLong },
+            { latitude: destinationLat, longitude: destinationLong },
+            1
+        );
+
+        //  console.log(distanceCal);
+        var distanceStr = '';
+
+        distanceStr = Math.round((Number(distanceCal) / 1000));
+
+
+
+        return resolve(distanceStr);
+
+    });
 }
 
