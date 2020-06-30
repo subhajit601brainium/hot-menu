@@ -184,6 +184,7 @@ module.exports = {
                                             })();
                                         })
                                 } else {
+                                    var settings = await settingSchema.findOne();
                                     var response = {
                                         userDetails: {
                                             fullName: result.fullName,
@@ -195,7 +196,8 @@ module.exports = {
                                             userType: 'customer',
                                             loginType: loginType
                                         },
-                                        authToken: authToken
+                                        authToken: authToken,
+                                        settings: settings
                                     }
 
                                     updateUser({

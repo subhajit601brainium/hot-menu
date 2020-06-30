@@ -101,5 +101,65 @@ module.exports = {
                 callBack(result);
             }
         });
+    },
+    postOrder: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.postOrder(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
+    },
+    getAllStates: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.getAllStates(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
+    },
+    getAllCities: (data, callBack) => {
+        async.waterfall([
+            function(nextCb) {
+                restaurantModel.getAllCities(data, function(result) {
+                    nextCb(null, result);
+                })
+            }
+        ], function(err, result) {
+            if (err) {
+                callBack({
+                    success: false,
+                    STATUSCODE: 403,
+                    message: 'Request Forbidden',
+                    response_data: {}
+                })
+            } else {
+                callBack(result);
+            }
+        });
     }
 }

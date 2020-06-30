@@ -143,5 +143,26 @@ customerApi.post('/promoCodeList',jwtTokenValidator.validateToken,restaurantVali
     });
 })
 
+/** Order Submit */
+customerApi.post('/postOrder',jwtTokenValidator.validateToken,restaurantValidator.postOrderValidator, function(req, res) {
+    restaurantService.postOrder(req.body, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** State List */
+customerApi.post('/getAllStates',jwtTokenValidator.validateToken,restaurantValidator.getAllStates, function(req, res) {
+    restaurantService.getAllStates(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** City List */
+customerApi.post('/getAllCities',jwtTokenValidator.validateToken,restaurantValidator.getAllCities, function(req, res) {
+    restaurantService.getAllCities(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
 
 module.exports = customerApi;

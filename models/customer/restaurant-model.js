@@ -9,6 +9,10 @@ var customerSchema = require('../../schema/Customer');
 var offerSchema = require('../../schema/Offer');
 var mapOfferItemSchema = require('../../schema/MapOfferItem');
 var promoCodeSchema = require('../../schema/PromoCode');
+var orderSchema = require('../../schema/Order');
+var OrderDetailSchema = require('../../schema/OrderDetail');
+var stateSchema = require('../../schema/State');
+var citySchema = require('../../schema/City');
 var config = require('../../config');
 
 module.exports = {
@@ -85,12 +89,12 @@ module.exports = {
                                                         _id: { $in: itemValue.tagId }
                                                     });
 
-                                                    if(itmTags.length > 0) {
-                                                        for(let itmtg of itmTags) {
+                                                    if (itmTags.length > 0) {
+                                                        for (let itmtg of itmTags) {
                                                             filterArr.push(itmtg);
                                                         }
                                                     }
-                                                    
+
                                                     itemObj.tags = itmTags;
 
 
@@ -254,7 +258,7 @@ module.exports = {
                                                                 } else {
                                                                     filterData = data.body.filter;
                                                                 }
-                                                                
+
                                                             }
                                                             var itemCheckCond = {
                                                                 topSelling: 'YES',
@@ -262,20 +266,20 @@ module.exports = {
                                                             }
                                                             if (filterData != '') {
                                                                 //  console.log(filterData);
-                                                                  if((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
-                                                                      itemCheckCond.categoryId = filterData.categoryId;
-                                                                  } else {
-                                                                      itemCheckCond.categoryId = categoryId;
-                                                                  }
-                                                                  if((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
-                                                                      itemCheckCond.type = filterData.foodpreferType;
-                                                                  }
-                                                                  if((filterData.tagId != '') && (filterData.tagId != undefined)) {
-                                                                      itemCheckCond.tagId = filterData.tagId;
-                                                                  }
-                                                              } else {
-                                                                  itemCheckCond.categoryId = categoryId;
-                                                              }
+                                                                if ((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
+                                                                    itemCheckCond.categoryId = filterData.categoryId;
+                                                                } else {
+                                                                    itemCheckCond.categoryId = categoryId;
+                                                                }
+                                                                if ((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
+                                                                    itemCheckCond.type = filterData.foodpreferType;
+                                                                }
+                                                                if ((filterData.tagId != '') && (filterData.tagId != undefined)) {
+                                                                    itemCheckCond.tagId = filterData.tagId;
+                                                                }
+                                                            } else {
+                                                                itemCheckCond.categoryId = categoryId;
+                                                            }
                                                             //FILTER END
                                                             itemSchema.find(itemCheckCond)
                                                                 .limit(4)
@@ -304,8 +308,8 @@ module.exports = {
                                                                                     _id: { $in: itemValue.tagId }
                                                                                 });
 
-                                                                                if(itmTags.length > 0) {
-                                                                                    for(let itmtg of itmTags) {
+                                                                                if (itmTags.length > 0) {
+                                                                                    for (let itmtg of itmTags) {
                                                                                         filterArr.push(itmtg);
                                                                                     }
                                                                                 }
@@ -335,7 +339,7 @@ module.exports = {
                                                                                     itemObj.offer = {};
                                                                                 }
                                                                                 itemArr.push(itemObj);
-                                                                                
+
                                                                             }
 
                                                                         }
@@ -449,8 +453,8 @@ module.exports = {
                                                         _id: { $in: itemValue.tagId }
                                                     });
 
-                                                    if(itmTags.length > 0) {
-                                                        for(let itmtg of itmTags) {
+                                                    if (itmTags.length > 0) {
+                                                        for (let itmtg of itmTags) {
                                                             filterArr.push(itmtg);
                                                         }
                                                     }
@@ -606,8 +610,8 @@ module.exports = {
                                                             for (let vendor of results) {
                                                                 allnearestVendorIds.push(vendor._id);
                                                             }
-                                                             //FILTER START
-                                                             if ((data.body.filter == '') || (data.body.filter == undefined)) {
+                                                            //FILTER START
+                                                            if ((data.body.filter == '') || (data.body.filter == undefined)) {
                                                                 var filterData = '';
                                                             } else {
                                                                 var filterData = data.body.filter;
@@ -616,22 +620,22 @@ module.exports = {
                                                                 } else {
                                                                     filterData = data.body.filter;
                                                                 }
-                                                                
+
                                                             }
                                                             var itemCheckCond = {
                                                                 vendorId: { $in: allnearestVendorIds }
                                                             }
                                                             if (filterData != '') {
-                                                              //  console.log(filterData);
-                                                                if((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
+                                                                //  console.log(filterData);
+                                                                if ((filterData.categoryId != '') && (filterData.categoryId != undefined)) {
                                                                     itemCheckCond.categoryId = filterData.categoryId;
                                                                 } else {
                                                                     itemCheckCond.categoryId = categoryId;
                                                                 }
-                                                                if((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
+                                                                if ((filterData.foodpreferType != '') && (filterData.foodpreferType != undefined)) {
                                                                     itemCheckCond.type = filterData.foodpreferType;
                                                                 }
-                                                                if((filterData.tagId != '') && (filterData.tagId != undefined)) {
+                                                                if ((filterData.tagId != '') && (filterData.tagId != undefined)) {
                                                                     itemCheckCond.tagId = filterData.tagId;
                                                                 }
                                                             } else {
@@ -663,13 +667,13 @@ module.exports = {
                                                                                 var itmTags = await tagSchema.find({
                                                                                     _id: { $in: itemValue.tagId }
                                                                                 });
-                            
-                                                                                if(itmTags.length > 0) {
-                                                                                    for(let itmtg of itmTags) {
+
+                                                                                if (itmTags.length > 0) {
+                                                                                    for (let itmtg of itmTags) {
                                                                                         filterArr.push(itmtg);
                                                                                     }
                                                                                 }
-                            
+
                                                                                 itemObj.tags = itmTags;
 
                                                                                 //Calculate Distance
@@ -921,13 +925,13 @@ module.exports = {
                                                             var itmTags = await tagSchema.find({
                                                                 _id: { $in: itemValue.tagId }
                                                             });
-        
-                                                            if(itmTags.length > 0) {
-                                                                for(let itmtg of itmTags) {
+
+                                                            if (itmTags.length > 0) {
+                                                                for (let itmtg of itmTags) {
                                                                     filterArr.push(itmtg);
                                                                 }
                                                             }
-        
+
                                                             itemObj.tags = itmTags;
 
                                                             //Calculate Distance
@@ -1024,23 +1028,442 @@ module.exports = {
             //     console.log(err);
             // });
             promoCodeSchema.find()
-            .then((allcodes) => {
-                callBack({
-                    success: true,
-                    STATUSCODE: 200,
-                    message: 'All Promo Code',
-                    response_data: {code: allcodes}
+                .then((allcodes) => {
+                    callBack({
+                        success: true,
+                        STATUSCODE: 200,
+                        message: 'All Promo Code',
+                        response_data: { code: allcodes }
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Internal DB error',
+                        response_data: {}
+                    });
                 });
-            })
-            .catch((error) => {
-                console.log(error);
+        }
+    },
+    postOrder: (data, callBack) => {
+        if (data) {
+
+            var vendorId = data.vendorId;
+            var items = data.items;
+            var latt = data.latitude;
+            var long = data.longitude;
+
+
+            if (typeof items == 'string') {
+                var itemObj = JSON.parse(items);
+            } else {
+                var itemObj = items;
+            }
+
+            var errorCheck = 0;
+            var orderDetailsItm = [];
+            var itemsIdArr = [];
+            for (item of itemObj) {
+                var orderDetailsItmObj = {};
+                if ((item.name == undefined) || (item.name == '') || (item.quantity == undefined) || (item.quantity == '') || (item.price == undefined) || (item.price == '') || (item.itemId == undefined) || (item.itemId == '')) {
+                    errorCheck++;
+                } else {
+                    //Items Check
+                    itemsIdArr.push(item.itemId);
+
+                    orderDetailsItmObj.item = item.name;
+                    orderDetailsItmObj.quantity = item.quantity;
+                    orderDetailsItmObj.itemPrice = item.price;
+                    orderDetailsItmObj.totalPrice = (Number(item.price) * Number(item.quantity));
+                    orderDetailsItm.push(orderDetailsItmObj);
+                }
+                // console.log(item.name);
+                // console.log(item.quantity);
+                // console.log(item.price);
+            }
+
+            if (errorCheck == 0) {
+
+                vendorSchema.findOne({
+                    _id: vendorId,
+                    location: {
+                        $near: {
+                            $maxDistance: config.restaurantSearchDistance,
+                            $geometry: {
+                                type: "Point",
+                                coordinates: [long, latt]
+                            }
+                        }
+                    },
+                    isActive: true
+                })
+                    .exec(async function (err, results) {
+                        if (err) {
+                            callBack({
+                                success: false,
+                                STATUSCODE: 500,
+                                message: 'Internal DB error',
+                                response_data: {}
+                            });
+                        } else {
+                            if (results != null) {
+
+
+                                //console.log(data);
+                                // console.log(itemsIdArr);
+                                var itemsCheck = await itemSchema.find({ _id: { $in: itemsIdArr } })
+                                var waitingTimeAll = 0;
+
+                                if (itemsCheck.length > 0) {
+                                    for (let item of itemsCheck) {
+                                        waitingTimeAll += Number(item.waitingTime);
+                                    }
+                                }
+                                var orderVendorId = data.vendorId;
+
+                                var orderNo = generateOrder();
+
+                                var ordersObj = {
+                                    vendorId: data.vendorId,
+                                    orderNo: orderNo,
+                                    orderTime: new Date(),
+                                    estimatedDeliveryTime: waitingTimeAll,
+
+                                    deliveryPincode: data.deliveryPincode,
+                                    deliveryHouseNo: data.deliveryHouseNo,
+                                    deliveryRoad: data.deliveryRoad,
+                                    deliveryCountryCode: data.deliveryCountryCode,
+                                    deliveryPhone: data.deliveryPhone,
+                                    deliveryState: data.deliveryState,
+                                    deliveryCity: data.deliveryCity,
+                                    deliveryLandmark: data.deliveryLandmark,
+                                    deliveryName: data.deliveryName,
+
+                                    customerId: data.customerId,
+                                    orderType: data.orderType,
+                                    orderStatus: 'NEW',
+                                    price: data.price,
+                                    discount: data.discount,
+                                    finalPrice: data.finalPrice,
+                                    serviceTax: data.serviceTax,
+                                    deliveryFee: data.deliveryFee,
+                                    paymentType: data.paymentType,
+                                    promocodeId: data.promocodeId
+                                }
+
+                                // console.log(ordersObj);
+
+
+
+                                //  console.log(orderDetailsItm);
+
+                                new orderSchema(ordersObj).save(async function (err, result) {
+                                    if (err) {
+                                        console.log(err);
+                                        callBack({
+                                            success: false,
+                                            STATUSCODE: 500,
+                                            message: 'Internal DB error',
+                                            response_data: {}
+                                        });
+                                    } else {
+                                        var orderId = result._id;
+                                        var orderDetailsArr = [];
+                                        var orderIdsArr = [];
+                                        var orderDetailsCount = orderDetailsItm.length;
+                                        var c = 0;
+                                        for (let orderdetails of orderDetailsItm) {
+                                            c++;
+                                            var orderEnter = orderdetails;
+                                            orderEnter.orderId = orderId;
+
+                                            // console.log(orderEnter);
+
+                                            orderDetailsArr.push(orderEnter);
+
+                                            new OrderDetailSchema(orderEnter).save(async function (err, result) {
+                                                orderIdsArr.push(result._id);
+
+
+
+                                                orderSchema.update({ _id: orderId }, {
+                                                    $set: { orderDetails: orderIdsArr }
+                                                }, function (err, res) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    } else {
+                                                        // console.log(res);
+                                                    }
+                                                });
+                                            })
+                                        }
+                                        //SEND PUSH MESSAGE
+                                        // var pushMessage = 'You have received a new order'
+                                        // var receiverId = orderVendorId;
+                                        // sendPush(receiverId, pushMessage, orderNo);
+                                        callBack({
+                                            success: true,
+                                            STATUSCODE: 200,
+                                            message: 'Order Updated Successfully.',
+                                            response_data: {}
+                                        });
+
+                                    }
+                                });
+
+                            } else {
+                                callBack({
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Something went wrong.',
+                                    response_data: {}
+                                });
+                            }
+                        }
+
+                    });
+
+
+
+            } else {
+                console.log('Invalid items object format');
                 callBack({
                     success: false,
                     STATUSCODE: 500,
-                    message: 'Internal DB error',
+                    message: 'Validation failed.',
                     response_data: {}
                 });
-            });
+            }
+
+
+
+
+        }
+    },
+    getAllStates: (data, callBack) => {
+        if (data) {
+            
+            // var unirest = require('unirest');
+
+
+            // unirest
+            //     .get('https://www.universal-tutorial.com/api/getaccesstoken')
+            //     .headers({
+            //         "Accept": "application/json",
+            //         "api-token": "7iGUkccR-qcSXizTYcM0Dacf26S263MbVkB_SBg8BTfWQ3tzhPElaeba0hZCg0JuSc0",
+            //         "user-email": "subhajit601@gmail.com"
+            //     })
+            //     .then((response) => {
+
+            //         var authtoken = response.body.auth_token;
+            //         // console.log(authtoken);
+
+            //         var bearrAuth = `Bearer ${authtoken}`;
+            //         var stateUrl = `https://www.universal-tutorial.com/api/states/India`;
+            //         unirest
+            //             .get(stateUrl)
+            //             .headers({
+            //                 "Accept": "application/json",
+            //                 "Authorization": bearrAuth
+            //             })
+            //             .then(async (response) => {
+            //                  console.log(response.body);
+                           
+
+            //                  var stateList = response.body;
+
+            //                  for(let state of stateList) {
+            //                      var statesObj = {
+            //                          name: state.state_name,
+            //                          isActive: true
+            //                      }
+
+            //                      new stateSchema(statesObj).save(async function (err, result) {
+            //                             console.log(err);
+            //                             console.log(result);
+            //                         });
+            //                  }
+            //             })
+            //             .catch((err) => {
+            //                 console.log(err);
+            //                 callBack({
+            //                     success: false,
+            //                     STATUSCODE: 500,
+            //                     message: 'Something went wrong.',
+            //                     response_data: {}
+            //                 })
+            //             });
+
+            //     })
+            //     .catch((err) => {
+            //         console.log(err);
+            //         callBack({
+            //             success: false,
+            //             STATUSCODE: 500,
+            //             message: 'Something went wrong.',
+            //             response_data: {}
+            //         })
+            //     });
+
+            stateSchema
+                .find()
+                .then((states) => {
+
+                    callBack({
+                        success: true,
+                        STATUSCODE: 200,
+                        message: 'State list.',
+                        response_data: { statelist: states }
+                    })
+                })
+                .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    })
+                });
+        }
+    },
+    getAllCities: (data, callBack) => {
+        if (data) {
+            var stateName = data.body.stateName;
+            var stateId = data.body.stateId;
+
+
+            citySchema
+                .find({ "stateId": stateId })
+                .then((citiess) => {
+
+                    if (citiess.length > 0) {
+                        callBack({
+                            success: true,
+                            STATUSCODE: 200,
+                            message: 'All cities.',
+                            response_data: { cities: citiess }
+                        })
+                    } else {
+
+                        stateSchema.findOne({_id: stateId, name: stateName})
+                        .then(async (stateres) => {
+                            if(stateres != null) {
+
+                                var unirest = require('unirest');
+
+
+                        unirest
+                            .get('https://www.universal-tutorial.com/api/getaccesstoken')
+                            .headers({
+                                "Accept": "application/json",
+                                "api-token": "7iGUkccR-qcSXizTYcM0Dacf26S263MbVkB_SBg8BTfWQ3tzhPElaeba0hZCg0JuSc0",
+                                "user-email": "subhajit601@gmail.com"
+                            })
+                            .then((response) => {
+
+                                var authtoken = response.body.auth_token;
+                                // console.log(authtoken);
+
+                                var bearrAuth = `Bearer ${authtoken}`;
+                                var cityUrl = `https://www.universal-tutorial.com/api/cities/${stateName}`;
+                                unirest
+                                    .get(cityUrl)
+                                    .headers({
+                                        "Accept": "application/json",
+                                        "Authorization": bearrAuth
+                                    })
+                                    .then(async (response) => {
+                                        // console.log(response.body);
+                                        var citiesList = response.body;
+
+                                        if (citiesList.length > 0) {
+                                            var cityArr = [];
+                                            for (let city of citiesList) {
+
+                                                var cityObj = {
+                                                    stateId: stateId,
+                                                    name: city.city_name,
+                                                    isActive: true
+                                                }
+
+                                                cityArr.push(cityObj);
+                                            }
+
+
+                                            citySchema.insertMany(cityArr, function (error, citiess) {
+                                                console.log(error);
+                                                callBack({
+                                                    success: true,
+                                                    STATUSCODE: 200,
+                                                    message: 'All cities.',
+                                                    response_data: { cities: citiess }
+                                                })
+                                            });
+                                        }
+
+
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                        callBack({
+                                            success: false,
+                                            STATUSCODE: 500,
+                                            message: 'Something went wrong.',
+                                            response_data: {}
+                                        })
+                                    });
+
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                                callBack({
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Something went wrong.',
+                                    response_data: {}
+                                })
+                            });
+
+                            } else {
+                                callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'Invalid State information.',
+                            response_data: {}
+                        })
+                            }
+
+                        })
+                        .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    })
+                });
+
+                        
+
+                    }
+
+
+                })
+                .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    })
+                });
+
+
         }
     }
 }
@@ -1066,5 +1489,11 @@ function getDistance(sourceLat, sourceLong, destinationLat, destinationLong) {
         return resolve(distanceStr);
 
     });
+}
+
+function generateOrder() {
+
+    var orderNo = `HM${Math.floor((Math.random() * 100000))}`
+    return orderNo;
 }
 
