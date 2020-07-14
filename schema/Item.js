@@ -10,6 +10,8 @@ var itemSchema = new mongoose.Schema({
     description: { type: String, allow: '' },
     ingredients: { type: String, allow: '' },
     nutrition: { type: Array, allow: '' },
+    caloriInUnit: { type: String, default: '523 cal' },
+    caloriInType: { type: String, default: 'caloriLow' },
     recipe: { type: String, allow: '' },
     price: { type: Number, required: true },
     waitingTime: { type: String, allow: ''},

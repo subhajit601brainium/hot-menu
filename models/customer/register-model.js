@@ -9,6 +9,67 @@ const mail = require('../../modules/sendEmail');
 var bcrypt = require('bcryptjs');
 
 module.exports = {
+    //Customer  Verify Email before registration
+    verifyAccount: (data, callBack) => {
+        if (data) {
+            var email = data.email;
+
+            /** Check for customer existence */
+            customerSchema.countDocuments({ email: data.email }).exec(function (err, count) {
+                if (err) {
+                    callBack({
+                        success: false,
+                        STATUSCODE: 500,
+                        message: 'Internal DB error',
+                        response_data: {}
+                    });
+                } else {
+                    if (count) {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'User already exists for this email',
+                            response_data: {}
+                        });
+                    } else {
+
+                        let otp = Math.random().toString().replace('0.', '').substr(0, 6);
+                        var customerObj = {
+                            otp: otp
+                        }
+
+                        
+                        try {
+                            mail('verifyOtpEmail')(data.email, customerObj).send();
+                            callBack({
+                                success: false,
+                                STATUSCODE: 200,
+                                message: 'Please check your email. We have sent a code to be used to verify.',
+                                response_data: {
+                                    email: data.email,
+                                    otp: otp
+                                }
+                            });
+                        } catch (Error) {
+                            console.log('Something went wrong while sending email');
+                            callBack({
+                                success: false,
+                                STATUSCODE: 500,
+                                message: 'Internal DB error',
+                                response_data: {}
+                            });
+                        }
+
+
+                    }
+                }
+
+            })
+
+
+
+        }
+    },
     //Customer 
     customerRegistration: (data, callBack) => {
         if (data) {
@@ -125,6 +186,7 @@ module.exports = {
                                 }
 
                                 const authToken = generateToken(result);
+                                var settings = await settingSchema.findOne();
 
                                 if (data.profileImage != '') { // IF SOCIAL PROFILE PIC PRESENT THEN UPLOAD IT IN OUR SERVER
 
@@ -167,7 +229,8 @@ module.exports = {
                                                         userType: 'customer',
                                                         loginType: loginType
                                                     },
-                                                    authToken: authToken
+                                                    authToken: authToken,
+                                                    settings: settings
                                                 }
 
                                                 updateUser({
@@ -184,7 +247,7 @@ module.exports = {
                                             })();
                                         })
                                 } else {
-                                    var settings = await settingSchema.findOne();
+                                    
                                     var response = {
                                         userDetails: {
                                             fullName: result.fullName,
@@ -261,7 +324,7 @@ module.exports = {
                 }
             }
 
-         //   loginCond.userType = data.userType;
+            //   loginCond.userType = data.userType;
 
             console.log(loginCond);
             customerSchema.findOne(loginCond, async function (err, result) {
@@ -301,19 +364,39 @@ module.exports = {
                             })
 
                         } else if (loginUser == 'PHONE') {
+                            let otp = Math.random().toString().replace('0.', '').substr(0, 6);
                             let response = {
                                 email: result.email,
                                 phone: result.phone.toString(),
-                                otp: config.loginOtp.toString(),
+                                otp: otp.toString(),
                                 sid: '0000'
                             }
 
-                            callBack({
-                                success: true,
-                                STATUSCODE: 202,
-                                message: 'Login Successfull',
-                                response_data: response
-                            })
+                            await customerSchema.updateOne({ _id: result._id }, {
+                                $set: {
+                                    otp: response.otp
+                                }
+                            });
+
+                            try {
+                                mail('verifyOtpEmail')(result.email, response).send();
+                                callBack({
+                                    success: true,
+                                    STATUSCODE: 202,
+                                    message: 'Login Successfull',
+                                    response_data: response
+                                })
+                            } catch (Error) {
+                                console.log('Something went wrong while sending email');
+                                callBack({
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Internal DB error',
+                                    response_data: {}
+                                });
+                            }
+
+
                         }
                         else { //NORMAL LOGIN
                             if ((data.password == '') || (data.password == undefined)) {
@@ -393,7 +476,7 @@ module.exports = {
     resendLoginOTP: (data, callBack) => {
         if (data) {
             var phone = data.phone;
-            customerSchema.findOne({ phone: phone }, function (err, result) {
+            customerSchema.findOne({ phone: phone }, async function (err, result) {
                 if (err) {
                     callBack({
                         success: false,
@@ -403,20 +486,42 @@ module.exports = {
                     });
                 } else {
                     if (result) {
+                        let otp = Math.random().toString().replace('0.', '').substr(0, 6);
+
+
+
                         let response = {
                             email: result.email,
                             phone: result.phone.toString(),
-                            otp: config.loginOtp.toString(),
+                            otp: otp.toString(),
                             sid: '0000'
                         }
 
-                        callBack({
-                            success: true,
-                            STATUSCODE: 200,
-                            message: 'OTP send successfully.',
-                            response_data: response
-                        })
-                        
+
+                        await customerSchema.updateOne({ _id: result._id }, {
+                            $set: {
+                                otp: response.otp
+                            }
+                        });
+
+                        try {
+                            mail('verifyOtpEmail')(result.email, response).send();
+                            callBack({
+                                success: true,
+                                STATUSCODE: 200,
+                                message: 'OTP send successfully.',
+                                response_data: response
+                            })
+                        } catch (Error) {
+                            console.log('Something went wrong while sending email');
+                            callBack({
+                                success: false,
+                                STATUSCODE: 500,
+                                message: 'Internal DB error',
+                                response_data: {}
+                            });
+                        }
+
 
                     } else {
                         callBack({
@@ -447,7 +552,7 @@ module.exports = {
                 } else {
                     if (result) {
 
-                        if (otp == config.loginOtp) {
+                        if (otp == result.otp) {
                             const authToken = generateToken(result);
                             var settings = await settingSchema.findOne();
 
@@ -679,65 +784,19 @@ module.exports = {
     },
     customerEditProfile: (data, callBack) => {
         if (data) {
-            /** Check for customer existence */
-            console.log(data.customerId);
-            console.log(data.email);
-            customerSchema.countDocuments({ email: data.email, loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
-                if (err) {
-                    callBack({
-                        success: false,
-                        STATUSCODE: 500,
-                        message: 'Internal DB error',
-                        response_data: {}
-                    });
-                } else {
-                    if (count) {
-                        callBack({
-                            success: false,
-                            STATUSCODE: 422,
-                            message: 'User already exists for this email',
-                            response_data: {}
-                        });
-                    } else {
-                        customerSchema.countDocuments({ phone: data.phone, loginType: data.loginType, _id: { $ne: data.customerId } }).exec(function (err, count) {
-                            if (err) {
-                                callBack({
-                                    success: false,
-                                    STATUSCODE: 500,
-                                    message: 'Internal DB error',
-                                    response_data: {}
-                                });
+            
+            let updateData = {
+                fullName: data.fullName
+            }
 
-                            } if (count) {
-                                callBack({
-                                    success: false,
-                                    STATUSCODE: 422,
-                                    message: 'User already exists for this phone no.',
-                                    response_data: {}
-                                });
-                            } else {
+            updateUser(updateData, { _id: data.customerId });
 
-                                let updateData = {
-                                    fullName: data.fullName,
-                                    email: data.email,
-                                    phone: data.phone,
-                                    countryCode: data.countryCode,
-                                }
-
-                                updateUser(updateData, { _id: data.customerId });
-
-                                callBack({
-                                    success: true,
-                                    STATUSCODE: 200,
-                                    message: 'User updated Successfully',
-                                    response_data: {}
-                                })
-
-                            }
-                        })
-                    }
-                }
-            });
+            callBack({
+                success: true,
+                STATUSCODE: 200,
+                message: 'User updated Successfully',
+                response_data: {}
+            })
         }
     },
     customerChangePassword: (data, callBack) => {
@@ -1894,6 +1953,210 @@ module.exports = {
                     }
                 }
             });
+
+
+
+
+        }
+    },
+    //verify User Before Changing Email/Phone
+    verifyUser: async (data, callBack) => {
+        if (data) {
+            var reqBody = data.body;
+
+
+            customerSchema
+                .findOne({ _id: reqBody.customerId })
+                .then((vendorres) => {
+                    if (vendorres != null) {
+
+                        let forgotPasswordOtp = Math.random().toString().replace('0.', '').substr(0, 6);
+                        customer = {};
+                        customer.otp = forgotPasswordOtp;
+                        try {
+                            mail('verifyOtpEmail')(vendorres.email, customer).send();
+                            callBack({
+                                success: false,
+                                STATUSCODE: 200,
+                                message: 'Please check your email. We have sent a verification code.',
+                                response_data: {
+                                    email: customer.contactEmail,
+                                    otp: forgotPasswordOtp
+                                }
+                            });
+                        } catch (Error) {
+                            console.log('Something went wrong while sending email');
+                        }
+
+                    } else {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'User not found.',
+                            response_data: {}
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 400,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    });
+                });
+
+
+
+
+
+        }
+    },
+    //Email Update
+    updateEmail: async (data, callBack) => {
+        if (data) {
+            var reqBody = data.body;
+
+            var updateVendor = {
+                email: reqBody.email,
+            }
+
+            customerSchema
+                .findOne({ email: reqBody.email })
+                .then((customerRes) => {
+
+                    if (customerRes == null) {
+                        customerSchema.update({ _id: reqBody.customerId }, {
+                            $set: updateVendor
+                        }, async function (err, res) {
+                            if (err) {
+                                callBack({
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Internal DB error',
+                                    response_data: {}
+                                });
+                            } else {
+                                var customer = await customerSchema.findOne({ _id: reqBody.customerId });
+
+                                let response = {
+                                    fullName: customer.fullName,
+                                    email: reqBody.email,
+                                    phone: customer.phone,
+                                    countryCode: customer.countryCode
+                                }
+        
+                                if (customer.profileImage != '') {
+                                    response.profileImage = `${config.serverhost}:${config.port}/img/profile-pic/` + customer.profileImage
+                                } else {
+                                    response.profileImage = ''
+                                }
+
+                                callBack({
+                                    success: true,
+                                    STATUSCODE: 200,
+                                    message: 'Email updated successfully.',
+                                    response_data: response
+                                });
+
+                            }
+                        });
+                    } else {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'Email already exists.',
+                            response_data: {}
+                        });
+                    }
+
+                })
+                .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 400,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    });
+                });
+
+
+
+
+
+        }
+    },
+    //Phone Update
+    updatePhone: async (data, callBack) => {
+        if (data) {
+            var reqBody = data.body;
+
+            var updateVendor = {
+                countryCode: reqBody.countryCode,
+                phone: reqBody.phone,
+            }
+
+            customerSchema
+                .findOne({ phone: reqBody.phone })
+                .then((customerRes) => {
+
+                    if (customerRes == null) {
+                        customerSchema.update({ _id: reqBody.customerId }, {
+                            $set: updateVendor
+                        }, async function (err, res) {
+                            if (err) {
+                                callBack({
+                                    success: false,
+                                    STATUSCODE: 500,
+                                    message: 'Internal DB error',
+                                    response_data: {}
+                                });
+                            } else {
+                                var customer = await customerSchema.findOne({ _id: reqBody.customerId });
+                                let response = {
+                                    fullName: customer.fullName,
+                                    email: customer.email,
+                                    phone: reqBody.phone,
+                                    countryCode: reqBody.countryCode
+                                }
+        
+                                if (customer.profileImage != '') {
+                                    response.profileImage = `${config.serverhost}:${config.port}/img/profile-pic/` + customer.profileImage
+                                } else {
+                                    response.profileImage = ''
+                                }
+
+                                callBack({
+                                    success: true,
+                                    STATUSCODE: 200,
+                                    message: 'Phone no updated successfully.',
+                                    response_data: response
+                                });
+
+                            }
+                        });
+                    } else {
+                        callBack({
+                            success: false,
+                            STATUSCODE: 422,
+                            message: 'Phone no already exists.',
+                            response_data: {}
+                        });
+                    }
+
+                })
+                .catch((err) => {
+                    console.log(err);
+                    callBack({
+                        success: false,
+                        STATUSCODE: 400,
+                        message: 'Something went wrong.',
+                        response_data: {}
+                    });
+                });
+
 
 
 

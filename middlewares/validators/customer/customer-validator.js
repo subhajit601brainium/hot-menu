@@ -1,6 +1,23 @@
 var joi = require('@hapi/joi');
 
 module.exports = {
+    verifyAccount: async (req, res, next) => {
+        const rules = joi.object({
+            fullName: joi.string().required().error(new Error('full name is required')),
+            email: joi.string().email().error(new Error('Valid email is required')),
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        }
+    },
     customerRegister: async (req, res, next) => {
         const rules = joi.object({
             fullName: joi.string().required().error(new Error('full name is required')),
@@ -329,7 +346,66 @@ module.exports = {
         } else {
             next();
         }
-    }
+    },
+    verifyUser: async (req, res, next) => {
+        var userType = ['customer','guest'];
+        const verifyType = ["EMAIL", "PHONE"];
+        const rules = joi.object({
+            customerId: joi.string().allow('').optional(),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType')),
+            verifyType: joi.string().valid(...verifyType).error(new Error('Verify Type is required')),
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        } 
+    },
+    updateEmail: async (req, res, next) => {
+        var userType = ['customer','guest'];
+        const rules = joi.object({
+            customerId: joi.string().required().error(new Error('Customer id is required')),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType')),
+            email: joi.string().email().error(new Error('Valid email is required')),
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        } 
+    },
+    updatePhone : async (req, res, next) => {
+        var userType = ['customer','guest'];
+        const rules = joi.object({
+            customerId: joi.string().required().error(new Error('Customer id is required')),
+            userType: joi.string().valid(...userType).error(new Error('Please send userType')),
+            countryCode: joi.string().required().error(new Error('Country code is required')),
+            phone: joi.number().integer().error(new Error('Valid phone no is required')),
+        });
+
+        const value = await rules.validate(req.body);
+        if (value.error) {
+            res.status(422).json({
+                success: false,
+                STATUSCODE: 422,
+                message: value.error.message
+            })
+        } else {
+            next();
+        } 
+    },
 }
 
 function getExtension(filename) {

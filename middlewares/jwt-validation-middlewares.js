@@ -33,6 +33,7 @@ exports.validateToken = async (req, res, next) => {
                         }
                         else {
                             //VALID USER CHECK
+                            console.log(decoded.subject);
                             if (req.body.customerId != decoded.subject) {
                                 res.status(401).send({
                                     success: false,

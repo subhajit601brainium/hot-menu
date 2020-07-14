@@ -757,6 +757,8 @@ module.exports = {
                         description: res.description,
                         ingredients: res.ingredients,
                         nutrition: res.nutrition,
+                        caloriInUnit: res.caloriInUnit,
+                        caloriInType: res.caloriInType,
                         price: res.price,
                         image: `${config.serverhost}:${config.port}/img/vendor/${res.menuImage}`
                     };

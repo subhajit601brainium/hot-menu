@@ -11,6 +11,14 @@ var customerApi = express.Router();
 customerApi.use(express.json());
 customerApi.use(express.urlencoded({extended: false}));
 
+
+/** Customer registration */
+customerApi.post('/verifyAccount', customerValidator.verifyAccount, function(req, res) {
+    registerService.verifyAccount(req.body, function(result) {
+        res.status(200).send(result);
+    })
+});
+
 /** Customer registration */
 customerApi.post('/register', customerValidator.customerRegister, function(req, res) {
     registerService.customerRegister(req.body, function(result) {
@@ -84,6 +92,29 @@ customerApi.post('/changePassword',jwtTokenValidator.validateToken, customerVali
 /** Profile image upload */
 customerApi.post('/profileImageUpload',jwtTokenValidator.validateToken,customerValidator.profileImageUpload, function(req, res) {
     registerService.profileImageUpload(req, function(result) {
+        res.status(200).send(result);
+    });
+});
+
+/** verify user */
+customerApi.post('/verifyUser',jwtTokenValidator.validateToken, customerValidator.verifyUser, function(req, res) {
+    registerService.verifyUser(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+
+
+/** Update phone */
+customerApi.post('/updatePhone',jwtTokenValidator.validateToken, customerValidator.updatePhone, function(req, res) {
+    registerService.updatePhone(req, function(result) {
+        res.status(200).send(result);
+    });
+})
+
+/** Update email */
+customerApi.post('/updateEmail',jwtTokenValidator.validateToken, customerValidator.updateEmail, function(req, res) {
+    registerService.updateEmail(req, function(result) {
         res.status(200).send(result);
     });
 })
@@ -162,7 +193,7 @@ customerApi.post('/getAllCities',jwtTokenValidator.validateToken,restaurantValid
     restaurantService.getAllCities(req, function(result) {
         res.status(200).send(result);
     });
-})
+});
 
 
 module.exports = customerApi;

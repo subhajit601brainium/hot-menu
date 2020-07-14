@@ -17,6 +17,20 @@ var config = {
     emailConfig: {
         MAIL_USERNAME: "liveapp.brainium@gmail.com",
         MAIL_PASS: "YW5kcm9pZDIwMTY"
+    },
+    emailTemplete: {
+        logoUrl: "https://logo.com/",
+        appUrl: "https://app.com/",
+        helpUrl: "https://help.com/",
+        facebookUrl: "https://facebook.com/",
+        twitterUrl: "https://twitter.com/Cargorsbv",
+        instagramUrl: "https://instagram.com/",
+        snapchatUrl: "https://snapchat.com/",
+        linkedinUrl: "https://www.linkedin.com/company/Cargors",
+        youtubeUrl: "https://www.youtube.com/channel/UC5UdfPRBUmOyrdiw9afne_w",
+        loginUrl: "https://login.com/",
+        androidUrl: "https://android.com/",
+        iosUrl: "https://ios.com/",
     }
 }
 
